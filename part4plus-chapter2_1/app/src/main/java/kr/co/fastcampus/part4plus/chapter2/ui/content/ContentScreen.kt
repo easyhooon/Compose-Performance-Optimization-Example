@@ -28,9 +28,12 @@ fun ContentScreen(memoId: Int) {
     val memo = remember(memos) { memos.single { it.id == memoId } }
 
     Box(Modifier.fillMaxSize()) {
+        // 화면에서 사용하는 Scroll 값을 State 로 처리한 것
+        // rememberScrollState 를 사용하면 여러가지 컴포넌트에서 Scroll 에 관련된 값들을 사용할 수 있음
         val scroll = rememberScrollState(0)
         Body(scroll)
-        Title(memo.text, scroll.value)
+        //TODO 어떻게 Title 함수를 수정해야하는지 잘 모르겠다. 학습 필값
+        Title(memo.text) {scroll.value}
     }
 }
 
@@ -68,7 +71,7 @@ private fun Body(
 }
 
 @Composable
-private fun Title(memoText: String, scroll: Int) {
+private fun Title(memoText: String, scrollProvider: () -> Int) {
     val maxOffset = with(LocalDensity.current) { MaxTitleOffset.toPx() }
     val minOffset = with(LocalDensity.current) { MinTitleOffset.toPx() }
 
@@ -76,7 +79,17 @@ private fun Title(memoText: String, scroll: Int) {
         modifier = Modifier
             .heightIn(min = MaxTitleOffset)
             .offset {
-                val offset = (maxOffset - scroll).coerceAtLeast(minOffset)
+                // scroll 값을 통해 offset 을 계산
+                // 위아래 스크롤를 왔다갔다 하며넛 Column 부분을 계속해서 그려줌
+                // Recomposition 이 계속해서 발생하는 이유
+                // Title 이 호출될때마다 계속해서 offset 이 변경됨, 전체 Modifier 가 변경됨
+                // 결국 Column 전체가 Recomposition 됨 (Ui 트리를 매번 새로 그림)
+                // -> scroll 파라미터를 람다로 바꿔야 한다!
+                // 람다를 참조하는 형태로 변경되어 offset의 값은 변하지 않게 됨
+                // int 값을 받는게 아니라 람다를 참조하는 형태라 offset이 참조하는 것은 똑같음
+                // 값을 직접 전달하지 않고, 람다를 참조하는 형태로 변경하여 Composition 단계를 생략 해줄 수 있었음
+                // ㄴ 상태 읽기 연기 전략
+                val offset = (maxOffset - scrollProvider()).coerceAtLeast(minOffset)
                 IntOffset(x = 0, y = offset.toInt())
             }
             .fillMaxWidth()
