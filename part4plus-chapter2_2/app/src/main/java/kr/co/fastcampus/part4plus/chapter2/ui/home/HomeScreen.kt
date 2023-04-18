@@ -10,8 +10,6 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.*
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
 import kr.co.fastcampus.part4plus.chapter2.model.Memo
 import kr.co.fastcampus.part4plus.chapter2.model.memos
 import kr.co.fastcampus.part4plus.chapter2.ui.theme.MemoAppTheme
@@ -79,8 +77,17 @@ fun ColumnScope.MemoList(onClickAction: (Int) -> Unit, memoList: SnapshotStateLi
         modifier = Modifier
             .weight(1f)
     ) {
+        // items 의 key 가 없어서 아이템이 새로 추가될때마다 리스트의 모든 요소들이 리컴포지션되는 것을 확인할 수 있음(Layout Inspector를 통해)
+        // key 는 람다로 지정
+        // Column 에서는 아이템을 감싸는 key 를 지정해주면 같은 효과를 낼 수 있음
+        // for (memo in memoList) {
+        //     key(memo.id) {
+        //        Card()
+        //     }
+        // }
         items(
-            items = memoList
+            items = memoList,
+            key = { it.id }
         ) { memo ->
             Card(
                 modifier = Modifier
