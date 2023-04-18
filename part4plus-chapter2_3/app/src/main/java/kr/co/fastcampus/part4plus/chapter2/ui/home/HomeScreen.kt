@@ -10,8 +10,6 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.*
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
 import kr.co.fastcampus.part4plus.chapter2.model.Memo
 import kr.co.fastcampus.part4plus.chapter2.model.memos
 import kr.co.fastcampus.part4plus.chapter2.ui.theme.MemoAppTheme
@@ -23,7 +21,9 @@ fun HomeScreen(homeState: HomeState) {
             modifier = Modifier.fillMaxSize(),
             color = MaterialTheme.colors.background
         ) {
-            val memoList = remember { memos }
+            // Type mismatch. Required: SnapshotStateList<Memo> Found: List<Memo>
+            // -> toMutableStateList() 로 변환하여 해결
+            val memoList = remember { memos.sortedBy { it.id } }.toMutableStateList()
             val onClickAction: (Int) -> Unit = {
                 homeState.showContent(
                     it
@@ -57,6 +57,9 @@ fun AddMemo(memoList: SnapshotStateList<Memo>) {
         )
         Button(
             onClick = {
+                // item 을 추가할때 인덱스 0번에 추가
+                // 가장 아이디가 큰 (memoList.size) 원소를 0번째에 추가하는 형식
+                // 항상 정렬이 이뤄지는 구조
                 memoList.add(
                     index = 0,
                     Memo(memoList.size, inputValue.value)
@@ -80,7 +83,9 @@ fun ColumnScope.MemoList(onClickAction: (Int) -> Unit, memoList: SnapshotStateLi
             .weight(1f)
     ) {
         items(
-            items = memoList.sortedBy { it.id },
+            // sortedBy 오름차순 정렬
+            // 오름차순 연산식을 remember 로 외부로 추출
+            items = memoList,
             key = { it.id }
         ) { memo ->
             Card(
