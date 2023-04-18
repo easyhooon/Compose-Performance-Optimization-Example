@@ -10,12 +10,9 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.*
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
 import kr.co.fastcampus.part4plus.chapter2.model.Memo
 import kr.co.fastcampus.part4plus.chapter2.model.memos
 import kr.co.fastcampus.part4plus.chapter2.ui.theme.MemoAppTheme
-import java.math.BigInteger
 
 @Composable
 fun HomeScreen(homeState: HomeState) {
@@ -64,14 +61,25 @@ fun AddMemo(memoList: SnapshotStateList<Memo>) {
                     Memo(memoList.size, inputValue.value)
                 )
                 inputValue.value = ""
+                // 버튼 클릭시 count 를 증가 시킴(갱신)
                 count++
             },
             modifier = Modifier
                 .wrapContentWidth()
                 .fillMaxHeight()
         ) {
+            // 버튼의 텍스트 뒤에 숫자를 추가한 형태
+            // button 을 클릭하면 count 가 변화하고 이를 사용하는 Text는 recomposition 됨
             Text("ADD\n$count")
-            count++
+            // 버튼 클릭시 count 를 증가 시킴(갱신)
+            // 숫자를 읽고 -> 값을 변경 시키는 구조
+            // 리컴포지션 스코프내에 있기 때문에 count ++ 도 호출됨
+            // 리컴포지션은 리컴포지션의 함수에만 적용되는게 아니라 범위에 걸쳐서 적용
+            // count++
+            // 증가 -> 리컴포지션 -> 증가 리컴포지션 -> 무한으로 증가, 리컴포지션(무한루프)
+            // 리컴포지션 스코프내에 리컴포지션 대상이 존재할 경우 무한루프가 발생
+            // 이 컴포지션 스코프 내에서 사용하는 값을 직접 쓰는 경우 (읽는 경우x) 발생
+            // 역방향 쓰기 -> 읽힌 이후에 쓰는 것을 의미, 쓰면 안됨
         }
     }
 }
